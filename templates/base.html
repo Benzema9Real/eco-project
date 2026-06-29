@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Кормушки — наша команда{% endblock %}</title>
+    <meta name="description" content="Команда заботы о птицах. Фото-отчёты с наших кормушек по всему городу.">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Merriweather:wght@400;700&display=swap');
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --forest: #2D4A22;
+            --moss: #4A7C3F;
+            --leaf: #6DAA54;
+            --bark: #8B5E3C;
+            --cream: #F7F3EC;
+            --warm: #EDE5D8;
+            --gold: #C8973A;
+            --text: #1E2A1A;
+            --muted: #6B7B65;
+            --white: #FFFFFF;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--cream);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* NAV */
+        nav {
+            background: var(--forest);
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 60px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--white);
+            font-weight: 800;
+            font-size: 1.1rem;
+            letter-spacing: 0.3px;
+        }
+        .nav-logo .bird { font-size: 1.4rem; }
+        .nav-links { display: flex; gap: 1.5rem; align-items: center; }
+        .nav-links a {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover { color: var(--white); }
+        .nav-btn {
+            background: var(--gold) !important;
+            color: var(--forest) !important;
+            padding: 7px 16px;
+            border-radius: 20px;
+            font-weight: 700 !important;
+        }
+        .nav-btn:hover { opacity: 0.9; }
+
+        /* MESSAGES */
+        .messages-wrap { max-width: 900px; margin: 1rem auto; padding: 0 1.5rem; }
+        .message-item {
+            background: #D4EDDA;
+            color: #155724;
+            border: 1px solid #C3E6CB;
+            border-radius: 10px;
+            padding: 12px 18px;
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        /* MAIN */
+        main { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem 4rem; }
+
+        /* FOOTER */
+        footer {
+            background: var(--forest);
+            color: rgba(255,255,255,0.6);
+            text-align: center;
+            padding: 1.5rem;
+            font-size: 0.85rem;
+            margin-top: auto;
+        }
+        footer span { color: var(--gold); }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav>
+        <a href="/" class="nav-logo">
+            <span class="bird">🐦</span>
+            <span>КормушкиТим</span>
+        </a>
+        <div class="nav-links">
+            <a href="/">Главная</a>
+            <a href="/reports/">Все отчёты</a>
+            <a href="/report/" class="nav-btn">+ Отчёт</a>
+        </div>
+    </nav>
+
+    {% if messages %}
+    <div class="messages-wrap">
+        {% for message in messages %}
+        <div class="message-item">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <p>Сделано с <span>♥</span> командой КормушкиТим · {{ 2025 }}</p>
+    </footer>
+</body>
+</html>

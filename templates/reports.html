@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+{% block title %}Все фото-отчёты — КормушкиТим{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        padding: 3rem 0 2rem;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+        border-bottom: 2px solid var(--warm);
+        margin-bottom: 2rem;
+    }
+    .page-header-left .label {
+        font-size: 0.75rem;
+        font-weight: 800;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--moss);
+        margin-bottom: 0.4rem;
+    }
+    .page-header h1 {
+        font-family: 'Merriweather', serif;
+        font-size: 2rem;
+        color: var(--forest);
+    }
+    .count-badge {
+        background: var(--forest);
+        color: var(--white);
+        font-size: 0.85rem;
+        font-weight: 700;
+        padding: 6px 14px;
+        border-radius: 20px;
+    }
+    .add-report-btn {
+        background: var(--gold);
+        color: var(--forest);
+        text-decoration: none;
+        padding: 12px 24px;
+        border-radius: 25px;
+        font-weight: 800;
+        font-size: 0.95rem;
+        transition: transform 0.15s;
+    }
+    .add-report-btn:hover { transform: translateY(-2px); }
+
+    .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+    .report-card {
+        background: var(--white);
+        border-radius: 18px;
+        overflow: hidden;
+        border: 1px solid var(--warm);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .report-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 16px 40px rgba(45,74,34,0.13);
+    }
+    .report-card img {
+        width: 100%;
+        height: 220px;
+        object-fit: cover;
+        display: block;
+        cursor: zoom-in;
+    }
+    .report-card-body { padding: 1.1rem 1.3rem 1.4rem; }
+    .card-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.6rem;
+    }
+    .card-name { font-weight: 800; color: var(--forest); font-size: 1rem; }
+    .card-date { font-size: 0.8rem; color: var(--muted); }
+    .card-desc { font-size: 0.9rem; color: var(--muted); line-height: 1.55; }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--muted);
+        background: var(--white);
+        border-radius: 20px;
+        border: 2px dashed var(--warm);
+    }
+    .empty-state .icon { font-size: 4rem; margin-bottom: 1rem; }
+    .empty-state h3 { color: var(--forest); margin-bottom: 0.5rem; }
+    .empty-state p { margin-bottom: 1.5rem; }
+    .btn-primary {
+        background: var(--forest);
+        color: var(--white);
+        text-decoration: none;
+        padding: 13px 26px;
+        border-radius: 25px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        display: inline-block;
+    }
+
+    /* LIGHTBOX */
+    .lightbox {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.88);
+        z-index: 999;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+    .lightbox.open { display: flex; }
+    .lightbox img {
+        max-width: 90vw;
+        max-height: 85vh;
+        border-radius: 12px;
+        object-fit: contain;
+    }
+    .lightbox-close {
+        position: absolute;
+        top: 1.5rem;
+        right: 2rem;
+        color: white;
+        font-size: 2rem;
+        cursor: pointer;
+        line-height: 1;
+        opacity: 0.8;
+    }
+    .lightbox-close:hover { opacity: 1; }
+    .lightbox-info {
+        position: absolute;
+        bottom: 2rem;
+        left: 50%;
+        transform: translateX(-50%);
+        text-align: center;
+        color: white;
+    }
+    .lightbox-info strong { display: block; font-size: 1rem; }
+    .lightbox-info span { font-size: 0.85rem; opacity: 0.7; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-left">
+        <div class="label">Галерея</div>
+        <h1>🌿 Все отчёты
+            <span class="count-badge">{{ reports|length }}</span>
+        </h1>
+    </div>
+    <a href="/report/" class="add-report-btn">+ Добавить отчёт</a>
+</div>
+
+{% if reports %}
+<div class="gallery-grid">
+    {% for report in reports %}
+    <div class="report-card">
+        <img src="{{ report.photo.url }}"
+             alt="Кормушка — {{ report.name }}"
+             onclick="openLightbox('{{ report.photo.url }}', '{{ report.name }}', '{{ report.created_at|date:"d.m.Y" }}')"
+             loading="lazy">
+        <div class="report-card-body">
+            <div class="card-meta">
+                <span class="card-name">{{ report.name }}</span>
+                <span class="card-date">{{ report.created_at|date:"d.m.Y" }}</span>
+            </div>
+            <div class="card-desc">{{ report.description }}</div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% else %}
+<div class="empty-state">
+    <div class="icon">📭</div>
+    <h3>Пока нет отчётов</h3>
+    <p>Стань первым — поделись фото своей кормушки!</p>
+    <a href="/report/" class="btn-primary">Оставить отчёт</a>
+</div>
+{% endif %}
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+    <span class="lightbox-close" onclick="closeLightbox()">✕</span>
+    <img id="lightbox-img" src="" alt="">
+    <div class="lightbox-info">
+        <strong id="lb-name"></strong>
+        <span id="lb-date"></span>
+    </div>
+</div>
+
+<script>
+function openLightbox(url, name, date) {
+    document.getElementById('lightbox-img').src = url;
+    document.getElementById('lb-name').textContent = name;
+    document.getElementById('lb-date').textContent = date;
+    document.getElementById('lightbox').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+function closeLightbox(e) {
+    if (!e || e.target !== document.getElementById('lightbox-img')) {
+        document.getElementById('lightbox').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+</script>
+{% endblock %}
