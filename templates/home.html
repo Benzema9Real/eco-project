@@ -23,7 +23,7 @@
     }
     .hero h1 {
         font-family: 'Merriweather', serif;
-        font-size: clamp(2rem, 5vw, 3.2rem);
+        font-size: clamp(1.7rem, 6vw, 3.2rem);
         font-weight: 700;
         color: var(--forest);
         line-height: 1.25;
@@ -230,9 +230,21 @@
     }
     .see-all-link:hover { color: var(--forest); }
 
+    /* ===== ADAPTIVE ===== */
+    @media (max-width: 900px) {
+        .about-grid { grid-template-columns: 1fr 1fr; }
+    }
+
     @media (max-width: 600px) {
-        .about-grid { grid-template-columns: 1fr; }
         .hero { padding: 2.5rem 0.5rem 2rem; }
+        .hero-sub { font-size: 1rem; }
+        .about-grid { grid-template-columns: 1fr; }
+        .about-section { padding: 1.5rem; }
+        .report-cta { padding: 1.8rem 1.3rem; }
+        .report-cta h2 { font-size: 1.4rem; }
+        .gallery-header { justify-content: flex-start; }
+        .btn-primary, .btn-secondary { width: 100%; justify-content: center; }
+        .hero-actions { flex-direction: column; }
     }
 </style>
 {% endblock %}
