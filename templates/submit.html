@@ -78,14 +78,25 @@
         width: 100%;
         height: 100%;
     }
-    .preview-img {
-        width: 100%;
-        max-height: 300px;
-        object-fit: cover;
-        border-radius: 12px;
+    .preview-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        gap: 8px;
         margin-top: 1rem;
-        display: none;
+    }
+    .preview-grid img {
+        width: 100%;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 8px;
         border: 2px solid var(--warm);
+    }
+    .photo-count {
+        font-size: 0.85rem;
+        color: var(--moss);
+        font-weight: 700;
+        margin-top: 0.6rem;
+        display: none;
     }
 
     .errorlist {
@@ -158,17 +169,18 @@
             </div>
 
             <div class="form-group">
-                <label>{{ form.photo.label }}</label>
+                <label>{{ form.photos.label }}</label>
                 <div class="file-upload-wrap">
                     <label class="file-upload-label" id="upload-label">
                         <span class="upload-icon">🖼️</span>
-                        <span class="upload-text">Нажми чтобы выбрать фото</span>
-                        <span class="upload-hint">JPG, PNG, WEBP до 10 МБ</span>
-                        {{ form.photo }}
+                        <span class="upload-text" id="upload-text">Нажми чтобы выбрать фото (до 12 штук)</span>
+                        <span class="upload-hint">JPG, PNG, WEBP до 10 МБ каждое</span>
+                        {{ form.photos }}
                     </label>
-                    <img id="preview" class="preview-img" alt="Предпросмотр">
+                    <div class="photo-count" id="photo-count"></div>
+                    <div class="preview-grid" id="preview-grid"></div>
                 </div>
-                {% if form.photo.errors %}<ul class="errorlist">{% for e in form.photo.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                {% if form.photos.errors %}<ul class="errorlist">{% for e in form.photos.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
             </div>
 
             <button type="submit" class="submit-btn">🐦 Отправить отчёт</button>
@@ -178,23 +190,48 @@
 </div>
 
 <script>
-    const input = document.querySelector('.form-file') || document.querySelector('input[type="file"]');
-    const preview = document.getElementById('preview');
-    const label = document.getElementById('upload-label');
+    const MAX_FILES = 12;
+    const input = document.querySelector('input[name="photos"]');
+    const previewGrid = document.getElementById('preview-grid');
+    const uploadText = document.getElementById('upload-text');
+    const uploadIcon = document.querySelector('#upload-label .upload-icon');
+    const photoCount = document.getElementById('photo-count');
 
     if (input) {
-        input.addEventListener('change', function() {
-            const file = this.files[0];
-            if (file) {
+        input.addEventListener('change', function () {
+            let files = Array.from(this.files);
+
+            if (files.length > MAX_FILES) {
+                alert(`Можно выбрать не больше ${MAX_FILES} фото. Взяты первые ${MAX_FILES}.`);
+                const dt = new DataTransfer();
+                files.slice(0, MAX_FILES).forEach(f => dt.items.add(f));
+                this.files = dt.files;
+                files = Array.from(this.files);
+            }
+
+            previewGrid.innerHTML = '';
+
+            if (files.length) {
+                uploadText.textContent = 'Нажми, чтобы изменить выбор';
+                uploadIcon.textContent = '✅';
+                photoCount.style.display = 'block';
+                photoCount.textContent = `Выбрано фото: ${files.length} из ${MAX_FILES}`;
+            } else {
+                uploadText.textContent = 'Нажми чтобы выбрать фото (до 12 штук)';
+                uploadIcon.textContent = '🖼️';
+                photoCount.style.display = 'none';
+            }
+
+            files.forEach(file => {
                 const reader = new FileReader();
                 reader.onload = e => {
-                    preview.src = e.target.result;
-                    preview.style.display = 'block';
-                    label.querySelector('.upload-text').textContent = file.name;
-                    label.querySelector('.upload-icon').textContent = '✅';
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.alt = file.name;
+                    previewGrid.appendChild(img);
                 };
                 reader.readAsDataURL(file);
-            }
+            });
         });
     }
 </script>
