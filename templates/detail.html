@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+{% block title %}{{ report.name }} — фото-отчёт{% endblock %}
+
+{% block extra_css %}
+<style>
+    .detail-header {
+        padding: 2.5rem 0 1.5rem;
+        border-bottom: 2px solid var(--warm);
+        margin-bottom: 2rem;
+    }
+    .back-link {
+        color: var(--moss);
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin-bottom: 1.2rem;
+    }
+    .back-link:hover { color: var(--forest); }
+    .detail-title {
+        font-family: 'Merriweather', serif;
+        font-size: 2rem;
+        color: var(--forest);
+        margin-bottom: 0.5rem;
+    }
+    .detail-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+    }
+    .detail-date {
+        font-size: 0.85rem;
+        color: var(--muted);
+        font-weight: 600;
+    }
+    .photo-count-badge {
+        background: var(--moss);
+        color: var(--white);
+        font-size: 0.78rem;
+        font-weight: 700;
+        padding: 4px 12px;
+        border-radius: 20px;
+    }
+    .detail-desc {
+        color: var(--text);
+        font-size: 1.05rem;
+        line-height: 1.7;
+        max-width: 700px;
+    }
+
+    /* MASONRY GALLERY */
+    .masonry {
+        columns: 3 220px;
+        column-gap: 1rem;
+        margin-bottom: 3rem;
+    }
+    .masonry-item {
+        break-inside: avoid;
+        margin-bottom: 1rem;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid var(--warm);
+        cursor: zoom-in;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .masonry-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 28px rgba(45,74,34,0.15);
+    }
+    .masonry-item img {
+        width: 100%;
+        display: block;
+    }
+
+    .empty-photos {
+        text-align: center;
+        padding: 3rem;
+        color: var(--muted);
+        background: var(--white);
+        border-radius: 16px;
+        border: 2px dashed var(--warm);
+        margin-bottom: 2rem;
+    }
+
+    /* LIGHTBOX */
+    .lightbox {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.9);
+        z-index: 999;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+    .lightbox.open { display: flex; }
+    .lightbox img {
+        max-width: 88vw;
+        max-height: 82vh;
+        border-radius: 12px;
+        object-fit: contain;
+    }
+    .lightbox-close {
+        position: absolute;
+        top: 1.5rem;
+        right: 2rem;
+        color: white;
+        font-size: 2rem;
+        cursor: pointer;
+        opacity: 0.8;
+    }
+    .lightbox-close:hover { opacity: 1; }
+    .lightbox-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(255,255,255,0.12);
+        color: white;
+        border: none;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        font-size: 1.5rem;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .lightbox-nav:hover { background: rgba(255,255,255,0.25); }
+    .lightbox-nav.prev { left: 1.5rem; }
+    .lightbox-nav.next { right: 1.5rem; }
+    .lightbox-counter {
+        position: absolute;
+        bottom: 1.5rem;
+        left: 50%;
+        transform: translateX(-50%);
+        color: white;
+        font-size: 0.9rem;
+        opacity: 0.75;
+    }
+
+    .cta-row { display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap; }
+    .btn-primary {
+        background: var(--forest);
+        color: var(--white);
+        text-decoration: none;
+        padding: 12px 24px;
+        border-radius: 25px;
+        font-weight: 700;
+        font-size: 0.95rem;
+    }
+
+    @media (max-width: 700px) {
+        .masonry { columns: 2 140px; }
+        .detail-title { font-size: 1.5rem; }
+        .lightbox-nav { width: 36px; height: 36px; font-size: 1.2rem; }
+        .lightbox-nav.prev { left: 0.6rem; }
+        .lightbox-nav.next { right: 0.6rem; }
+    }
+    @media (max-width: 420px) {
+        .masonry { columns: 1; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="detail-header">
+    <a href="/reports/" class="back-link">← Все отчёты</a>
+    <h1 class="detail-title">{{ report.name }}</h1>
+    <div class="detail-meta">
+        <span class="detail-date">{{ report.created_at|date:"d.m.Y, H:i" }}</span>
+        <span class="photo-count-badge">{{ report.photos.count }} фото</span>
+    </div>
+    <p class="detail-desc">{{ report.description }}</p>
+    <div class="cta-row">
+        <a href="/report/" class="btn-primary">🐦 Оставить свой отчёт</a>
+    </div>
+</div>
+
+{% if report.photos.all %}
+<div class="masonry" id="masonry">
+    {% for photo in report.photos.all %}
+    <div class="masonry-item" data-index="{{ forloop.counter0 }}" onclick="openLightbox({{ forloop.counter0 }})">
+        <img src="{{ photo.image.url }}" alt="Кормушка — {{ report.name }}, фото {{ forloop.counter }}" loading="lazy">
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-photos">Фото пока не загружены.</div>
+{% endif %}
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+    <span class="lightbox-close" onclick="closeLightbox()">✕</span>
+    <button type="button" class="lightbox-nav prev" onclick="event.stopPropagation(); shiftLightbox(-1)">‹</button>
+    <img id="lightbox-img" src="" alt="">
+    <button type="button" class="lightbox-nav next" onclick="event.stopPropagation(); shiftLightbox(1)">›</button>
+    <div class="lightbox-counter" id="lightbox-counter"></div>
+</div>
+
+<script>
+    const photoUrls = [
+        {% for photo in report.photos.all %}"{{ photo.image.url }}"{% if not forloop.last %},{% endif %}{% endfor %}
+    ];
+    let lbIndex = 0;
+
+    function openLightbox(i) {
+        lbIndex = i;
+        renderLightbox();
+        document.getElementById('lightbox').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+    function renderLightbox() {
+        document.getElementById('lightbox-img').src = photoUrls[lbIndex];
+        document.getElementById('lightbox-counter').textContent = `${lbIndex + 1} / ${photoUrls.length}`;
+    }
+    function shiftLightbox(delta) {
+        lbIndex = (lbIndex + delta + photoUrls.length) % photoUrls.length;
+        renderLightbox();
+    }
+    function closeLightbox(e) {
+        if (!e || e.target !== document.getElementById('lightbox-img')) {
+            document.getElementById('lightbox').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+    }
+    document.addEventListener('keydown', e => {
+        if (!document.getElementById('lightbox').classList.contains('open')) return;
+        if (e.key === 'Escape') closeLightbox();
+        if (e.key === 'ArrowLeft') shiftLightbox(-1);
+        if (e.key === 'ArrowRight') shiftLightbox(1);
+    });
+</script>
+{% endblock %}

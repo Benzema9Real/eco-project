@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from .models import Report, ReportPhoto
 from .forms import ReportForm
@@ -29,3 +29,8 @@ def submit_report(request):
 def all_reports(request):
     reports = Report.objects.all()
     return render(request, 'reports.html', {'reports': reports})
+
+
+def report_detail(request, slug):
+    report = get_object_or_404(Report, slug=slug)
+    return render(request, 'detail.html', {'report': report})

@@ -67,13 +67,66 @@
         transform: translateY(-5px);
         box-shadow: 0 16px 40px rgba(45,74,34,0.13);
     }
-    .report-card img {
-        width: 100%;
+    .card-carousel {
+        position: relative;
         height: 220px;
+        overflow: hidden;
+        background: var(--warm);
+    }
+    .carousel-track {
+        display: flex;
+        height: 100%;
+        transition: transform 0.4s ease;
+    }
+    .carousel-track img {
+        min-width: 100%;
+        height: 100%;
         object-fit: cover;
         display: block;
-        cursor: zoom-in;
     }
+    .carousel-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(30,42,26,0.45);
+        color: var(--white);
+        border: none;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 1.05rem;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.2s, background 0.2s;
+        z-index: 2;
+    }
+    .card-carousel:hover .carousel-btn { opacity: 1; }
+    .carousel-btn:hover { background: rgba(30,42,26,0.75); }
+    .carousel-btn.prev { left: 8px; }
+    .carousel-btn.next { right: 8px; }
+    .carousel-dots {
+        position: absolute;
+        bottom: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 5px;
+        z-index: 2;
+    }
+    .carousel-dots .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.55);
+        cursor: pointer;
+        transition: background 0.2s, transform 0.2s;
+    }
+    .carousel-dots .dot.active { background: var(--white); transform: scale(1.3); }
+    .report-card-link { text-decoration: none; color: inherit; display: block; }
     .report-card-body { padding: 1.1rem 1.3rem 1.4rem; }
     .card-meta {
         display: flex;
@@ -176,17 +229,31 @@
 <div class="gallery-grid">
     {% for report in reports %}
     <div class="report-card">
-        <img src="{{ report.photo.url }}"
-             alt="Кормушка — {{ report.name }}"
-             onclick="openLightbox('{{ report.photo.url }}', '{{ report.name }}', '{{ report.created_at|date:"d.m.Y" }}')"
-             loading="lazy">
-        <div class="report-card-body">
-            <div class="card-meta">
-                <span class="card-name">{{ report.name }}</span>
-                <span class="card-date">{{ report.created_at|date:"d.m.Y" }}</span>
+        <div class="card-carousel" data-carousel>
+            <div class="carousel-track">
+                {% for photo in report.photos.all %}
+                <img src="{{ photo.image.url }}" alt="Кормушка — {{ report.name }}" loading="lazy">
+                {% endfor %}
             </div>
-            <div class="card-desc">{{ report.description }}</div>
+            {% if report.photos.count > 1 %}
+            <button type="button" class="carousel-btn prev" aria-label="Предыдущее фото">‹</button>
+            <button type="button" class="carousel-btn next" aria-label="Следующее фото">›</button>
+            <div class="carousel-dots">
+                {% for photo in report.photos.all %}
+                <span class="dot"></span>
+                {% endfor %}
+            </div>
+            {% endif %}
         </div>
+        <a href="{% url 'report_detail' report.slug %}" class="report-card-link">
+            <div class="report-card-body">
+                <div class="card-meta">
+                    <span class="card-name">{{ report.name }}</span>
+                    <span class="card-date">{{ report.created_at|date:"d.m.Y" }}</span>
+                </div>
+                <div class="card-desc">{{ report.description }}</div>
+            </div>
+        </a>
     </div>
     {% endfor %}
 </div>
@@ -200,30 +267,40 @@
 </div>
 {% endif %}
 
-<!-- LIGHTBOX -->
-<div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
-    <span class="lightbox-close" onclick="closeLightbox()">✕</span>
-    <img id="lightbox-img" src="" alt="">
-    <div class="lightbox-info">
-        <strong id="lb-name"></strong>
-        <span id="lb-date"></span>
-    </div>
-</div>
-
 <script>
-function openLightbox(url, name, date) {
-    document.getElementById('lightbox-img').src = url;
-    document.getElementById('lb-name').textContent = name;
-    document.getElementById('lb-date').textContent = date;
-    document.getElementById('lightbox').classList.add('open');
-    document.body.style.overflow = 'hidden';
-}
-function closeLightbox(e) {
-    if (!e || e.target !== document.getElementById('lightbox-img')) {
-        document.getElementById('lightbox').classList.remove('open');
-        document.body.style.overflow = '';
+document.querySelectorAll('[data-carousel]').forEach(function (carousel) {
+    const track = carousel.querySelector('.carousel-track');
+    const slides = carousel.querySelectorAll('.carousel-track img');
+    const dots = carousel.querySelectorAll('.dot');
+    const prevBtn = carousel.querySelector('.carousel-btn.prev');
+    const nextBtn = carousel.querySelector('.carousel-btn.next');
+    let index = 0;
+    let timer = null;
+
+    function goTo(i) {
+        index = (i + slides.length) % slides.length;
+        track.style.transform = `translateX(-${index * 100}%)`;
+        dots.forEach((d, di) => d.classList.toggle('active', di === index));
     }
-}
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+
+    function startAuto() {
+        if (slides.length < 2) return;
+        stopAuto();
+        timer = setInterval(() => goTo(index + 1), 3500);
+    }
+    function stopAuto() { if (timer) clearInterval(timer); }
+
+    if (slides.length > 0) {
+        goTo(0);
+        startAuto();
+    }
+
+    if (prevBtn) prevBtn.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); goTo(index - 1); startAuto(); });
+    if (nextBtn) nextBtn.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); goTo(index + 1); startAuto(); });
+    dots.forEach((dot, i) => dot.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); goTo(i); startAuto(); }));
+
+    carousel.addEventListener('mouseenter', stopAuto);
+    carousel.addEventListener('mouseleave', startAuto);
+});
 </script>
 {% endblock %}
