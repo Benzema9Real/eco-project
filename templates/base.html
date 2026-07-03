@@ -151,5 +151,48 @@
     <footer>
         <p>Сделано с <span>♥</span> командой КормушкиТим · {{ 2026 }}</p>
     </footer>
+
+    <script>
+    (function () {
+        let audioCtx;
+
+        function chirp() {
+            try {
+                audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(2200, now);
+                osc.frequency.exponentialRampToValueAtTime(3400, now + 0.05);
+                osc.frequency.exponentialRampToValueAtTime(1900, now + 0.13);
+
+                gain.gain.setValueAtTime(0.0001, now);
+                gain.gain.exponentialRampToValueAtTime(0.16, now + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.16);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.18);
+            } catch (e) { /* Web Audio недоступен — просто молчим */ }
+        }
+
+        const CLICKABLE_SELECTOR = [
+            'button',
+            'a.btn-primary', 'a.btn-secondary', 'a.btn-gold',
+            'a.nav-btn', 'a.add-report-btn', 'a.see-all-link', 'a.back-link',
+            '.carousel-btn', '.carousel-dots .dot', '.masonry-item',
+            '.lightbox-close', '.lightbox-nav'
+        ].join(', ');
+
+        document.addEventListener('click', function (e) {
+            if (e.target.closest(CLICKABLE_SELECTOR)) chirp();
+        });
+    })();
+    </script>
 </body>
 </html>

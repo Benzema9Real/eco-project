@@ -261,6 +261,17 @@
         -webkit-box-orient: vertical;
         overflow: hidden;
     }
+    .report-card-more {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 0.7rem;
+        color: var(--moss);
+        font-weight: 700;
+        font-size: 0.85rem;
+        text-decoration: none;
+    }
+    .report-card-more:hover { color: var(--forest); }
 
     .empty-state {
         text-align: center;
@@ -385,6 +396,7 @@
                 <div class="report-card-name">{{ report.name }}</div>
                 <div class="report-card-date">{{ report.created_at|date:"d.m.Y" }}</div>
                 <div class="report-card-desc">{{ report.description }}</div>
+                <span class="report-card-more">Подробнее →</span>
             </div>
         </a>
     </div>
